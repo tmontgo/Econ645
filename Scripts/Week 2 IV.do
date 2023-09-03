@@ -19,29 +19,57 @@ cd "/Users/Sam/Desktop/Econ 645/Data/Wooldridge"
 ******************
 use "mroz.dta", clear
 
+*We'll use the data on married working women to estimate the return to education
+*using a simple OLS model.
 *Biased OLS
 reg lwage educ
 
-*Use Fathers Education as an instrument for women in the labor force
+*Our estimate implies that the returns to education is exp(.109)-1*100 about 11.5%
+display (exp(_b[educ])-1)*100
+
+*Use Fathers Education as an instrument for the observation's level of education
+*if the women is in the labor force
 reg educ fathedu if inlf==1
 predict edu_hat
 *Get F-Statistic
 test fathedu
+*Our F-test shows that the instrument is greater than F-stat > 15, so it seem
+*like a good candidate for an instrument
 
 *Father's Education as an instrument
 reg lwage edu_hat
 
 *One additional year of education increases wages by (exp(0.059)-1)*100%=6.1%
+display (exp(_b[edu_hat])-1)*100
+*Question? 
+*The F-test passed the instrument relevance (F-stat > 15), but what
+*about instrument exogeneity?
 
 *******************
 *Estimating Returns to Education for Men
 *******************
-*Use number of siblings as an instrument
+*Let's estimate the return
+**********
+*Exercise
+**********
+*Use number of siblings as an instrument to predict an observation's level of
+*education. We'll keep it simple and have no other covariates.
 use "wage2.dta", clear
+
+*1) Estimate the potentially biased OLS
+
+*2) Estimate your first stage
+
+*3) Test your first stage
+
+*4) Run your 2SLS
+
+
 
 *Biased OLS
 reg lwage educ
-
+*We have a estimated return of education of (exp(.0598392)-1)*100
+display (exp(_b[educ])-1)*100
 *Use Number of siblings as an instrument
 reg educ sibs
 predict edu_hat
@@ -52,29 +80,59 @@ test sibs
 reg lwage edu_hat
 
 *One additional year of education increases wages by (exp(0.1224)-1)*100%=13.0%
+display (exp(_b[edu_hat])-1)*100 
+*Another thing that is interesting here is the the OLS estimate is biased 
+*downward, which is not what we would expect.
+*Possible reasons:
+*1) Siblings could be correlated with ability - more siblings, less partental 
+*   attention which could result in lower ability
+*2) The OLS estimator is downward biased due to measurement error in educ, but
+*   this is less likely to satisfy the classic error-in-variables (CEM) assumption
 
 ********************
 *Smoking on Birthweight
 ********************
-*Example of a poor instrument
+*It is important to see an example of a poor instrument.
 use "bwght.dta", clear
 
-*Biased OLS
+*Biased OLS looks at the natural log of birth weight and cigarette packs smoked
+*per day by the mother.
+*We would expect that smoking is correlated with unobserved health and parental
+*decisions, so it is like biased due to unobserved confounders.
+
 reg lbwght packs
 
-*Use cigarette prices as an instrument
-*In the right direction, but not a strong instrument
-reg packs cigprice
-predict packs_hat
-*Fails F-test - weak instrument
-test cigprice
+*An additional package smoked per day decreases birthweight by exp(-.08981)-1~-8.6%
+display (exp(-.08981)-1)*100
 
-*Cigarette price as an instrument for packs smoked and in the wrong direction
+*We'll use cigarette prices as an instrument for cigarette packs smoked per day.
+*We assume that cigarette prices and the error term u are uncorrelated 
+*(instrument exogeneity). Note that some states fund health care with cigarette
+*tax revenue. 
+*We will use cigarette price and quantity of packs smoked should be negatively
+*correlated.
+reg packs cigprice
+*Our instrument is not associated with quantity consumed. 
+predict packs_hat
+*Instrument Revelance: 
+test cigprice
+*Our instrumennt fails the F-test - weak instrument
+
+*Cigarette price as an instrument for packs smoked is a poor instrument and 
+*our use of predicted packs smoked is in the wrong direction
 reg lbwght packs_hat
+
+*We can and should always test Instrument Relevance. If we have a poor 
+*instrument, we should go back to the drawing board.
+
+*Another issue here is that price is a poor instrument, since price and quantity
+*are simultaneously determined. We would need a second set of instruments on
+*price to estimate our first-stage.
 
 ********************
 *Card Returns to Education
 ********************
+*Save for presentation
 use "card.dta", clear
 
 *OLS
@@ -101,8 +159,14 @@ ivregress 2sls lwage (educ=nearc4) exper expersq i.black i.smsa i.south ///
 ******************
 use "mroz.dta", clear
 
-*Biased OLS
+*We'll use both parent's education as instruments to identify the effect of 
+*education on wages for working women. We overidentify the endogenous variable 
+*with 2 instruments: father's education and mother's education.
+
+*Potentially Biased OLS
 reg lwage educ c.exper##c.exper
+*Our result is (exp(.1074896)-1)*100~11.3%
+display (exp(_b[educ])-1)*100
 
 *We'll use to instruments for one endogenous variable
 *Use Parent's Education as an instrument for women in the labor force
@@ -117,14 +181,40 @@ reg lwage edu_hat c.exper##c.exper
 
 *One additional year of education increases wages by (exp(0.061)-1)*100%=6.3%
 
+*This can be more easily done with our ivregress 2sls command
+ivregress 2sls lwage (educ=fathedu mothedu) c.exper##c.exper
+display (exp(_b[educ])-1)*100
+
 ********************
 *Testing for Endogeneity - Returns to Education for Working Women
 ********************
 use "mroz.dta", clear
 
+*************
+*Exercise
+*************
+*Use father's and mother's education as an instrument to estimate education
+
+*First estimate OLS 
+
+*Second estimate the 2SLS with ivregress 2sls command
+
+
+
+
+
 *OLS
 reg lwage educ c.exper##c.exper
 
+*2SLS
+ivregress 2sls lwage (educ=fatheduc motheduc) c.exper##c.exper
+
+**
+*Two ways to test endogeneity
+**
+*If want to see if our explanatory variable of interest is potentially 
+*endogenous with the error term. We can conduct an endogeneity test. 
+*1) Manually
 *Estimate the reduced form for y_2 by regressing all exogenous variables 
 *includes those in the structural model and the additional IVs
 reg educ c.exper##c.exper fathedu mothedu if inlf==1
@@ -138,18 +228,36 @@ reg lwage educ c.exper##c.exper r
 *There is possible evidence of endogeneity since p < .1 but p > .05
 *You should report IV and OLS 
 
-* We can also use a postestimation command estat endogenous
+*2) With estat
+*We can also use a postestimation command estat endogenous
 ivregress 2sls lwage (educ=fathedu mothedu) c.exper##c.exper
 estat endogenous
 
 *********************
 *Testing Overidentifying Restrictions - Returns to Education for Working Women
 *********************
-use "mroz.dta", clear
+
+*When we have one IV for one endogenous explanatory variable, we have a just
+*identified equation. When we have two instruments and one endogenous 
+*explanatory variable we have overidentification.
+
+*When we have multiple IVs, we can test to see some of our instruments are 
+*correlated with the structural error term.
+
+*We can estimate two 2sls models (one for each IV) and then compare them. 
+*They should only differ by the sampling error. If our two beta coefficients
+*on our fitted explanatory variable of interest are different then, we conclude 
+*that at least one instrument or maybe both is/are correlated with the 
+*structural error term
+
+*When we add too many instrumental variables (or overidentification), we
+*can increase the efficiency of the 2SLS estimator. However, we may run the
+*risk of violating the instrument exogeneity assumption.
 
 * When we use motheredu and fatheredu as IVS for education, we have a single
 * overidentification restriction. We have two IVs and 1 endogenous explanatory
 * variable
+use "mroz.dta", clear
 
 ivregress 2sls lwage (educ=motheduc fatheduc) c.exper##c.exper
 *Get our residuals
@@ -376,7 +484,7 @@ import delimited using "dentists2.txt", clear delimiters("\t")
 list
 
 *This will use a ":"-delimited file
-import delimited using "dentists4, clear delimiters(":") 
+import delimited using "dentists4.txt", clear delimiters(":") 
 
 *We can subset columns and rows with import delimited, which can be helpful
 *for large files. Variable names will be defaulted for the first few rows, so
@@ -552,8 +660,48 @@ export excel using "dentlab.xlsx", sheet("Unlabeled", replace) firstrow(variable
 *3.7 Exporting comma and tab delimited files
 **********
 *Exporting CSV Files
+*I recommend when collaborating with others, especially if they are using 
+*different software like SAS, R, Python, etc. to use csv. They are universally
+*read, which makes collaboration easier. You may lose labels (or values), but
+*If everyone is not using Stata, then export csv (or excel) is a good idea.
 *The default is comma-delimited
-export delimited using ""
+
+use dentlab
+list
+
+*Our simpliest export is:
+export delimited using "dentists_comma.csv", replace
+*This will export the labels instead of the values
+*If you want to export the values instead of the labels, use the nolabels option
+export delimited using "dentists_comma.csv", nolabel replace
+
+type "dentists_comma.csv"
+
+*You also have the option of putting quotes around strings, which can be a good
+*idea if you strings have "," in them. Otherwise, the csv will think the "," 
+*is a place to delimit and your dataset will be incorrectly exported.
+*The option is simply quote.
+export delimited using "dentists_comma.csv", nolabel quote replace
+
+*If for some reason you do not want to export the variables names, you can use
+*the novarnames option. 
+export delimited using "dentists_comma.csv", nolabel quote novarnames replace
+type "dentists_comma.csv"
+
+*Sometimes we may need to format our data for exporting.
+replace years = 8.93 if name == "Mike Avity"
+export delimited using "dentists_comma.csv", nolabel quote replace
+type "dentists_comma.csv"
+
+*Note that the years for Mike Avity we just replace exported as 8.9300003.
+*To fix this, we can use the format command to set the total width to 5 and the
+*decimal places to 2 with %5.2f
+format years %5.2f
+export delimited using "dentists_comma.csv", nolabel quote replace
+type "dentists_comma.csv"
+
+*For more options see:
+help export delimited
 
 **********
 *3.8 Exporting space-separated files
@@ -715,6 +863,9 @@ https://blog.stata.com/2017/01/10/creating-excel-tables-with-putexcel-part-1-int
 *******
 *4.2 Double data entry
 *******
+*The duplicates command can be helpful, but it will only find duplicates that
+*are exactly the same unless you specify which variables with duplicates list vars
+*We'll cover this a bit later.
 
 ************
 *4.3 Checking individual variables
