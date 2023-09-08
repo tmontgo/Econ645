@@ -2229,13 +2229,13 @@ abb(#) option to abbreviate the observation to 20 characters</p>
       ┌────────────────────────────┐
       │ idcode   union   uniondues │
       ├────────────────────────────┤
- 276. │   2541       0          27 │
- 732. │    345       0          26 │
-1075. │   3848       0          26 │
-1223. │   1411       0          27 │
-1288. │   3464       0          17 │
+ 203. │   3905       0          10 │
+ 304. │    345       0          26 │
+ 388. │   2541       0          27 │
+ 491. │   3848       0          26 │
+ 972. │   1411       0          27 │
       ├────────────────────────────┤
-1330. │   3905       0          10 │
+1175. │   3464       0          17 │
       └────────────────────────────┘
 </pre>
 <p>Let’s look at another great command for observing categorical and
@@ -2487,11 +2487,15 @@ agewhenfirs │
 </pre>
 <p>There are some suspicious observations after this tabulation</p>
 <p>Scatter plots can be helpful as well</p>
-<pre class='stata'>. scatter hours wage if hours > 0 &amp; wage >0 &amp; wage &lt; 1000
+<pre class='stata'>. twoway scatter hours wage if hours > 0 &amp; wage >0 &amp; wage &lt; 1000
 
-. graph export hour_wage.png, width(500) replace
-(file hour_wage.png written in PNG format)
+. graph export "/Users/Sam/Desktop/Econ 645/Stata/hour_wage.png", width(500) replace
+(file /Users/Sam/Desktop/Econ 645/Stata/hour_wage.png written in PNG format)
 </pre>
+<figure>
+<img src="hour_wage.png" alt="Hours and Wages" />
+<figcaption aria-hidden="true">Hours and Wages</figcaption>
+</figure>
 <h3>
 4.7 Correcting errors in data
 </h3>
@@ -2507,7 +2511,7 @@ categories</p>
       ┌───────────────┐
       │ idcode   race │
       ├───────────────┤
-1793. │    543      4 │
+1796. │    543      4 │
       └───────────────┘
 
 . replace race=1 if idcode == 543
@@ -2534,7 +2538,7 @@ education</p>
       ┌───────────────────┐
       │ idcode   collgrad │
       ├───────────────────┤
-1706. │    107          1 │
+1456. │    107          1 │
       └───────────────────┘
 
 . replace collgrad = 0 if idcode == 107
@@ -2569,8 +2573,8 @@ education</p>
       ┌──────────────┐
       │ idcode   age │
       ├──────────────┤
-  82. │     51    83 │
- 682. │     80    54 │
+  45. │     80    54 │
+ 451. │     51    83 │
       └──────────────┘
 
 . replace age = 38 if idcode == 51
