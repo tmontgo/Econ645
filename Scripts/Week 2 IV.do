@@ -437,7 +437,7 @@ list
 *********
 *Importing SAS XPORT Version 8
 *********
-import sasxport8 "dentists.xpt", clear
+import sasxport8 "dentists.v8xpt", clear
 
 ***************
 *2.5 Importing SPSS files
@@ -469,7 +469,7 @@ list
 *If you read the manual you'll noticed that "," and "\t" are the default 
 *delimiters
 *Using "," delimter
-import delimited using "dentists.csv", clear
+import delimited using "dentists_comma.csv", clear
 list 
 
 *CSV files may come in .txt files or .csv files using "," delimiter
@@ -849,7 +849,7 @@ putexcel B3 = `r(mean)'
 *putexcel save //Not in older version
 
 *More on Putexcel
-https://blog.stata.com/2017/01/10/creating-excel-tables-with-putexcel-part-1-introduction-and-formatting/
+*https://blog.stata.com/2017/01/10/creating-excel-tables-with-putexcel-part-1-introduction-and-formatting/
 
 **********************************
 *Chapter 4: Cleaning and Checking Data
